@@ -115,6 +115,7 @@ class WSDL {
 
   _initializeOptions(options) {
     this._originalIgnoredNamespaces = (options || {}).ignoredNamespaces;
+    this._originalForceSyncLoad = (options || {}).forceSyncLoad;
     this.options = {};
 
     var ignoredNamespaces = options ? options.ignoredNamespaces : null;
@@ -180,6 +181,7 @@ class WSDL {
     options = _.assign({}, this.options);
     // follow supplied ignoredNamespaces option
     options.ignoredNamespaces = this._originalIgnoredNamespaces || this.options.ignoredNamespaces;
+    options.forceSyncLoad = this._originalForceSyncLoad || this.options.forceSyncLoad;
     options.WSDL_CACHE = this.WSDL_CACHE;
 
     WSDL.load(includePath, options, function(err, wsdl) {
