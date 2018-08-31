@@ -39,6 +39,26 @@ describe('wsdl-load-from-memory-tests', function() {
         done()
       })
     });
+
+    it('should load a wsdl with no imports directly from memory and in a sync manner', function (done) {
+
+      var options = {
+        WSDL_CACHE: {},
+        forceSyncLoad: true
+      }
+      // Create the initial wsdl directly
+      var stockQuoteWsdl = new WSDL(stockQuoteWsdlContents, undefined, options)
+
+      // Load the wsdl fully once its been created in memory in a sync manner
+      var checkwsdl
+      stockQuoteWsdl.load(function (err, wsdl) {
+        checkwsdl = wsdl
+      })
+      // Check the wsdl has loaded after the call has been made
+      assert.equal(stockQuoteWsdl.definitions['$name'], "StockQuote")
+      done()
+    });
+
   });
 
   describe('should load a multipart wsdl from the cache', function () {
