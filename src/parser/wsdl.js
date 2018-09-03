@@ -21,6 +21,8 @@ var Schema = require('./xsd/schema');
 var Types = require('./wsdl/types');
 var Element = require('./element');
 
+var syncLoad
+
 class WSDL {
   constructor(definition, uri, options) {
     this.content = definition;
@@ -106,16 +108,20 @@ class WSDL {
       });
     }
 
-    if (self.options.forceSyncLoad) {
+    if (self.syncLoad) {
       loadUpSchemas()
     } else {
       process.nextTick(loadUpSchemas);
     }
   }
 
+  loadSync(callback) {
+    this.syncLoad = true
+    this.load(callback)
+  }
+
   _initializeOptions(options) {
     this._originalIgnoredNamespaces = (options || {}).ignoredNamespaces;
-    this._originalForceSyncLoad = (options || {}).forceSyncLoad;
     this.options = {};
 
     var ignoredNamespaces = options ? options.ignoredNamespaces : null;
@@ -156,8 +162,6 @@ class WSDL {
     if (options.NTLMSecurity) {
       this.options.NTLMSecurity = options.NTLMSecurity;
     }
-
-    this.options.forceSyncLoad = options.forceSyncLoad
   }
 
   _processNextInclude(includes, callback) {
@@ -181,7 +185,6 @@ class WSDL {
     options = _.assign({}, this.options);
     // follow supplied ignoredNamespaces option
     options.ignoredNamespaces = this._originalIgnoredNamespaces || this.options.ignoredNamespaces;
-    options.forceSyncLoad = this._originalForceSyncLoad || this.options.forceSyncLoad;
     options.WSDL_CACHE = this.WSDL_CACHE;
 
     WSDL.load(includePath, options, function(err, wsdl) {
@@ -215,7 +218,7 @@ class WSDL {
       self._processNextInclude(includes, function(err) {
         callback(err);
       });
-    });
+    }, self.syncLoad);
   }
 
   processIncludes(callback) {
@@ -371,7 +374,7 @@ class WSDL {
    * By the time file A starts processing its includes its definitions will be already loaded,
    * this is the only thing that B will depend on when "opening" A
    */
-  static load(uri, options, callback) {
+  static load(uri, options, callback, syncLoad) {
     var fromCache,
       WSDL_CACHE;
 
@@ -393,10 +396,10 @@ class WSDL {
       }
     }
 
-    return WSDL.open(uri, options, callback);
+    return WSDL.open(uri, options, callback, syncLoad);
   }
 
-  static open(uri, options, callback) {
+  static open(uri, options, callback, syncLoad) {
     if (typeof options === 'function') {
       callback = options;
       options = {};
@@ -427,6 +430,7 @@ class WSDL {
           wsdl = new WSDL(definition, uri, options);
           WSDL_CACHE[uri] = wsdl;
           wsdl.WSDL_CACHE = WSDL_CACHE;
+          wsdl.syncLoad = syncLoad
           wsdl.load(callback);
         }
       });
@@ -441,6 +445,7 @@ class WSDL {
             wsdl = new WSDL(definition, uri, options);
             WSDL_CACHE[uri] = wsdl;
             wsdl.WSDL_CACHE = WSDL_CACHE;
+            wsdl.syncLoad = syncLoad
             wsdl.load(callback);
           } else {
             callback(new Error(g.f('Invalid {{WSDL URL}}: %s\n\n\r Code: %s' +
