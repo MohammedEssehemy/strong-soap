@@ -21,7 +21,7 @@ var Schema = require('./xsd/schema');
 var Types = require('./wsdl/types');
 var Element = require('./element');
 
-var syncLoad
+var syncLoad;
 
 class WSDL {
   constructor(definition, uri, options) {
