@@ -430,7 +430,7 @@ class WSDL {
           wsdl = new WSDL(definition, uri, options);
           WSDL_CACHE[uri] = wsdl;
           wsdl.WSDL_CACHE = WSDL_CACHE;
-          wsdl.syncLoad = syncLoad
+          wsdl.syncLoad = syncLoad;
           wsdl.load(callback);
         }
       });
@@ -445,7 +445,7 @@ class WSDL {
             wsdl = new WSDL(definition, uri, options);
             WSDL_CACHE[uri] = wsdl;
             wsdl.WSDL_CACHE = WSDL_CACHE;
-            wsdl.syncLoad = syncLoad
+            wsdl.syncLoad = syncLoad;
             wsdl.load(callback);
           } else {
             callback(new Error(g.f('Invalid {{WSDL URL}}: %s\n\n\r Code: %s' +
