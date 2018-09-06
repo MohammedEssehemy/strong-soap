@@ -49,9 +49,9 @@ describe('wsdl-load-from-memory-tests', function() {
       var stockQuoteWsdl = new WSDL(stockQuoteWsdlContents, undefined, options);
 
       // Load the wsdl fully once its been created in memory in a sync manner
-      var checkwsdl=stockQuoteWsdl.loadSync()
+      var checkwsdl=stockQuoteWsdl.loadSync();
       assert.equal(checkwsdl.definitions['$name'], "StockQuote");
-      done()
+      done();
     });
 
   });

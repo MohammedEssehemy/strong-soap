@@ -109,20 +109,20 @@ class WSDL {
     }
 
     if (self.syncLoad) {
-      loadUpSchemas()
+      loadUpSchemas();
     } else {
       process.nextTick(loadUpSchemas);
     }
   }
 
   loadSync() {
-    this.syncLoad = true
-    var result
+    this.syncLoad = true;
+    var result;
     this.load(function (err, wsdl) {
-        result = wsdl
-    })
-    this.syncLoad = false
-    return result
+        result = wsdl;
+    });
+    this.syncLoad = false;
+    return result;
   }
 
   _initializeOptions(options) {
