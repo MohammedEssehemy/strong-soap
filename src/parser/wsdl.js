@@ -518,7 +518,8 @@ class WSDL {
     var fromCache = WSDL_CACHE[uri];
     /**
      * If the file is fully loaded in the cache, return it.
-     * Otherwise load it from the file system or URL.
+     * Otherwise throw an error as we cannot load this in a sync way as we would need to perform IO
+     * either to the filesystem or http
      */
     if (fromCache && !fromCache.isLoaded) {
       fromCache.syncLoad=true
