@@ -56,8 +56,8 @@ describe('wsdl-load-from-memory-tests', function() {
 
       // Load the wsdl fully once its been created in memory
       stockQuoteWsdl.load(function () {
-        assert.equal(stockQuoteWsdl.definitions['$name'], "StockQuote")
-        done()
+        assert.equal(stockQuoteWsdl.definitions['$name'], "StockQuote");
+        done();
       })
     });
 
@@ -75,7 +75,7 @@ describe('wsdl-load-from-memory-tests', function() {
       done();
     });
 
-    it('should fail to load a wsdl synchronously with imports directly from memory', function (done) {
+    it('should fail to load a wsdl synchronously as wsdl not present in memory', function (done) {
 
       var options = {
         WSDL_CACHE: {}
@@ -94,8 +94,6 @@ describe('wsdl-load-from-memory-tests', function() {
         done();
       }
     });
-
-
   });
 
   describe('should load a multipart wsdl from the cache', function () {
@@ -106,7 +104,7 @@ describe('wsdl-load-from-memory-tests', function() {
 
     beforeEach(function (done) {
       var filePrefix = __dirname + '/wsdl/from-memory/multipart/';
-      var promiseList = []
+      var promiseList = [];
       /**
        * Read the contents of each of the files from the multipart directory
        */
@@ -114,7 +112,7 @@ describe('wsdl-load-from-memory-tests', function() {
         promiseList.push(new Promise(function (resolve, reject) {
           fs.readFile(filePrefix + fileName, 'utf8', function (err, definition) {
             if (err) {
-              reject(err)
+              reject(err);
             } else {
               /**
                * Create a WSDL object for each of the files and store them
@@ -123,11 +121,11 @@ describe('wsdl-load-from-memory-tests', function() {
 
               // This path name isn't the correct one, however it is what the strong-soap
               // implementation will default to when it comes to checking the cache.
-              var includePath = path.resolve(fileName)
-              var wsdl = new WSDL(definition, includePath, options)
-              options.WSDL_CACHE[includePath] = wsdl
-              wsdl.WSDL_CACHE = options.WSDL_CACHE
-              resolve(wsdl)
+              var includePath = path.resolve(fileName);
+              var wsdl = new WSDL(definition, includePath, options);
+              options.WSDL_CACHE[includePath] = wsdl;
+              wsdl.WSDL_CACHE = options.WSDL_CACHE;
+              resolve(wsdl);
             }
           })
         }))
@@ -151,7 +149,7 @@ describe('wsdl-load-from-memory-tests', function() {
          /**
           * Load the starting point wsdl from memory. Put in an incorrect uri as this should be loaded from the CACHE
           */
-         var wsdlDefinition = new WSDL(definition, 'startingWsdlUri', options)
+         var wsdlDefinition = new WSDL(definition, 'startingWsdlUri', options);
 
          /**
           * The load() function should take into account wsdls which have had their definitions loaded into the WSDL_CACHE,
@@ -183,13 +181,13 @@ describe('wsdl-load-from-memory-tests', function() {
         /**
          * Load the starting point wsdl from memory. Put in an incorrect uri as this should be loaded from the CACHE
          */
-        var wsdlDefinition = new WSDL(definition, 'startingWsdlUri', options)
+        var wsdlDefinition = new WSDL(definition, 'startingWsdlUri', options);
 
         /**
          * The load() function should take into account wsdls which have had their definitions loaded into the WSDL_CACHE,
          * but still needs to be fully parsed and loaded.
          */
-        var loadedWsdl = wsdlDefinition.loadSync()
+        var loadedWsdl = wsdlDefinition.loadSync();
         assert(loadedWsdl);
         assert(loadedWsdl.definitions);
         assert.notDeepEqual(loadedWsdl.definitions.bindings, {}, "Bindings not loaded on wsdl");

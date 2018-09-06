@@ -197,80 +197,49 @@ class WSDL {
     options.ignoredNamespaces = this._originalIgnoredNamespaces || this.options.ignoredNamespaces;
     options.WSDL_CACHE = this.WSDL_CACHE;
 
-    /*TODO: pull out common codevar staticLoad = function() {
+    var staticLoad = function(err, wsdl) {
+      if (err) {
+        return callback(err);
+      }
 
-    } */
+      self._includesWsdl.push(wsdl);
+
+      if (wsdl.definitions instanceof Definitions) {
+        // Set namespace for included schema that does not have targetNamespace
+        if (undefined in wsdl.definitions.schemas) {
+          if (include.namespace != null) {
+            // If A includes B and B includes C, B & C can both have no targetNamespace
+            wsdl.definitions.schemas[include.namespace] = wsdl.definitions.schemas[undefined];
+            delete wsdl.definitions.schemas[undefined];
+          }
+        }
+        _.mergeWith(self.definitions, wsdl.definitions, function (a, b) {
+          if (a === b) {
+            return a;
+          }
+          return (a instanceof Schema) ? a.merge(b, include.type === 'include') : undefined;
+        });
+      } else {
+        self.definitions.schemas[include.namespace ||
+        wsdl.definitions.$targetNamespace] =
+          deepMerge(self.definitions.schemas[include.namespace ||
+          wsdl.definitions.$targetNamespace], wsdl.definitions);
+      }
+      self._processNextInclude(includes, function (err) {
+        callback(err);
+      });
+    };
 
     if (self.syncLoad) {
       WSDL.loadSync(includePath, options, function (err, wsdl) {
-        if (err) {
-          return callback(err);
-        }
-
-        self._includesWsdl.push(wsdl);
-
-        if (wsdl.definitions instanceof Definitions) {
-          // Set namespace for included schema that does not have targetNamespace
-          if (undefined in wsdl.definitions.schemas) {
-            if (include.namespace != null) {
-              // If A includes B and B includes C, B & C can both have no targetNamespace
-              wsdl.definitions.schemas[include.namespace] = wsdl.definitions.schemas[undefined];
-              delete wsdl.definitions.schemas[undefined];
-            }
-          }
-          _.mergeWith(self.definitions, wsdl.definitions, function (a, b) {
-            if (a === b) {
-              return a;
-            }
-            return (a instanceof Schema) ? a.merge(b, include.type === 'include') : undefined;
-          });
-        } else {
-          self.definitions.schemas[include.namespace ||
-          wsdl.definitions.$targetNamespace] =
-            deepMerge(self.definitions.schemas[include.namespace ||
-            wsdl.definitions.$targetNamespace], wsdl.definitions);
-        }
-        self._processNextInclude(includes, function (err) {
-          callback(err);
-        });
+        staticLoad(err, wsdl);
       });
-
     } else {
       WSDL.load(includePath, options, function (err, wsdl) {
-        if (err) {
-          return callback(err);
-        }
-
-        self._includesWsdl.push(wsdl);
-
-        if (wsdl.definitions instanceof Definitions) {
-          // Set namespace for included schema that does not have targetNamespace
-          if (undefined in wsdl.definitions.schemas) {
-            if (include.namespace != null) {
-              // If A includes B and B includes C, B & C can both have no targetNamespace
-              wsdl.definitions.schemas[include.namespace] = wsdl.definitions.schemas[undefined];
-              delete wsdl.definitions.schemas[undefined];
-            }
-          }
-          _.mergeWith(self.definitions, wsdl.definitions, function (a, b) {
-            if (a === b) {
-              return a;
-            }
-            return (a instanceof Schema) ? a.merge(b, include.type === 'include') : undefined;
-          });
-        } else {
-          self.definitions.schemas[include.namespace ||
-          wsdl.definitions.$targetNamespace] =
-            deepMerge(self.definitions.schemas[include.namespace ||
-            wsdl.definitions.$targetNamespace], wsdl.definitions);
-        }
-        self._processNextInclude(includes, function (err) {
-          callback(err);
-        });
+        staticLoad(err, wsdl);
       });
 
     }
-
 
   }
 
@@ -555,7 +524,7 @@ class WSDL {
       fromCache.syncLoad=true
       fromCache.load(callback);
     } else {
-      throw(uri+" was not found in cache. For loadSync() calls all schemas must be preloaded into the cache")
+      throw(uri+" was not found in the cache. For loadSync() calls all schemas must be preloaded into the cache")
     }
 
     return wsdl;
