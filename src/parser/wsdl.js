@@ -117,9 +117,8 @@ class WSDL {
 
   loadSync() {
     this.syncLoad = true
-    var self = this
     var result
-    self.load(function (err, wsdl) {
+    this.load(function (err, wsdl) {
         result = wsdl
     })
     return result
