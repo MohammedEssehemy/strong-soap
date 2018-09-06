@@ -121,6 +121,7 @@ class WSDL {
     this.load(function (err, wsdl) {
         result = wsdl
     })
+    this.syncLoad = false
     return result
   }
 
