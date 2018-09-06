@@ -115,9 +115,14 @@ class WSDL {
     }
   }
 
-  loadSync(callback) {
+  loadSync() {
     this.syncLoad = true
-    this.load(callback)
+    var self = this
+    var result
+    self.load(function (err, wsdl) {
+        result = wsdl
+    })
+    return result
   }
 
   _initializeOptions(options) {
@@ -218,7 +223,7 @@ class WSDL {
       self._processNextInclude(includes, function(err) {
         callback(err);
       });
-    }, self.syncLoad);
+    });
   }
 
   processIncludes(callback) {
@@ -374,7 +379,7 @@ class WSDL {
    * By the time file A starts processing its includes its definitions will be already loaded,
    * this is the only thing that B will depend on when "opening" A
    */
-  static load(uri, options, callback, syncLoad) {
+  static load(uri, options, callback) {
     var fromCache,
       WSDL_CACHE;
 
@@ -396,10 +401,10 @@ class WSDL {
       }
     }
 
-    return WSDL.open(uri, options, callback, syncLoad);
+    return WSDL.open(uri, options, callback);
   }
 
-  static open(uri, options, callback, syncLoad) {
+  static open(uri, options, callback) {
     if (typeof options === 'function') {
       callback = options;
       options = {};
