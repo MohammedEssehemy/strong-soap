@@ -121,6 +121,9 @@ class WSDL {
     this.load(function (err, wsdl) {
         result = wsdl;
     });
+    // This is not intuitive but works as by setting syncLoad to true means this
+    // load function and its callback all are executed before the loadSync function
+    // returns. The outcome here is that the following result is always set correctly.
     this.syncLoad = false;
     return result;
   }
@@ -231,9 +234,8 @@ class WSDL {
     };
 
     if (self.syncLoad) {
-      WSDL.loadSync(includePath, options, function (err, wsdl) {
-        staticLoad(err, wsdl);
-      });
+      var wsdl = WSDL.loadSync(includePath, options);
+      staticLoad(null, wsdl)
     } else {
       WSDL.load(includePath, options, function (err, wsdl) {
         staticLoad(err, wsdl);
@@ -477,12 +479,11 @@ class WSDL {
     return wsdl;
   }
 
-  static loadSync(uri, options, callback) {
+  static loadSync(uri, options) {
     var fromCache,
       WSDL_CACHE;
 
-    if (typeof options === 'function') {
-      callback = options;
+    if (!options) {
       options = {};
     }
 
@@ -495,16 +496,15 @@ class WSDL {
        * into the cache, but with no processing performed on it yet.
        */
       if(fromCache.isLoaded){
-        return callback.call(fromCache, null, fromCache);
+        return fromCache;
       }
     }
 
-    return WSDL.openSync(uri, options, callback);
+    return WSDL.openSync(uri, options);
   }
 
-  static openSync(uri, options, callback) {
-    if (typeof options === 'function') {
-      callback = options;
+  static openSync(uri, options) {
+    if (!options) {
       options = {};
     }
 
@@ -522,10 +522,9 @@ class WSDL {
      * either to the filesystem or http
      */
     if (fromCache && !fromCache.isLoaded) {
-      fromCache.syncLoad=true
-      fromCache.load(callback);
+      wsdl = fromCache.loadSync();
     } else {
-      throw(uri+" was not found in the cache. For loadSync() calls all schemas must be preloaded into the cache")
+      throw(uri+" was not found in the cache. For loadSync() calls all schemas must be preloaded into the cache");
     }
 
     return wsdl;
