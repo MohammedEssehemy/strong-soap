@@ -20,10 +20,10 @@ describe('wsdl-load-from-memory-tests', function() {
       promiseList.push(new Promise(function (resolve, reject) {
         fs.readFile(__dirname + '/wsdl/from-memory/stockquote.wsdl', 'utf8', function (err, definition) {
           if (err) {
-            reject(err)
+            reject(err);
           } else {
             stockQuoteWsdlContents = definition;
-            resolve(stockQuoteWsdlContents)
+            resolve(stockQuoteWsdlContents);
           }
         })
       }));
@@ -70,7 +70,7 @@ describe('wsdl-load-from-memory-tests', function() {
       var stockQuoteWsdl = new WSDL(stockQuoteWsdlContents, undefined, options);
 
       // Load the wsdl fully once its been created in memory in a sync manner
-      var checkwsdl=stockQuoteWsdl.loadSync();
+      var checkwsdl = stockQuoteWsdl.loadSync();
       assert.equal(checkwsdl.definitions['$name'], "StockQuote");
       done();
     });

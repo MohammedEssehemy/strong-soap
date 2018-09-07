@@ -235,7 +235,7 @@ class WSDL {
 
     if (self.syncLoad) {
       var wsdl = WSDL.loadSync(includePath, options);
-      staticLoad(null, wsdl)
+      staticLoad(null, wsdl);
     } else {
       WSDL.load(includePath, options, function (err, wsdl) {
         staticLoad(err, wsdl);
