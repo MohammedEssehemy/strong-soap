@@ -21,8 +21,6 @@ var Schema = require('./xsd/schema');
 var Types = require('./wsdl/types');
 var Element = require('./element');
 
-var syncLoad;
-
 class WSDL {
   constructor(definition, uri, options) {
     this.content = definition;
@@ -38,6 +36,22 @@ class WSDL {
   }
   
   load(callback) {
+    this._loadAsyncOrSync(false, function (err, wsdl) {
+      callback(err,wsdl);
+    });
+  }
+
+  loadSync() {
+    var result;
+    this._loadAsyncOrSync(true, function (err, wsdl) {
+        result = wsdl;
+    });
+    // This is not intuitive but works as the load function and its callback all are executed before the
+    // loadSync function returns. The outcome here is that the following result is always set correctly.
+    return result;
+  }
+
+  _loadAsyncOrSync(syncLoad, callback) {
     var self = this;
     var definition = this.content;
     let fromFunc;
@@ -52,14 +66,14 @@ class WSDL {
     // register that this WSDL has started loading
     self.isLoaded = true;
 
-    var loadUpSchemas = function() {
+    var loadUpSchemas = function(syncLoad) {
       try {
         fromFunc.call(self, definition);
       } catch (e) {
         return callback(e);
       }
 
-      self.processIncludes(function(err) {
+      self.processIncludes(syncLoad, function(err) {
         var name;
         if (err) {
           return callback(err);
@@ -108,24 +122,11 @@ class WSDL {
       });
     }
 
-    if (self.syncLoad) {
-      loadUpSchemas();
+    if (syncLoad) {
+      loadUpSchemas(true);
     } else {
       process.nextTick(loadUpSchemas);
     }
-  }
-
-  loadSync() {
-    this.syncLoad = true;
-    var result;
-    this.load(function (err, wsdl) {
-        result = wsdl;
-    });
-    // This is not intuitive but works as by setting syncLoad to true means this
-    // load function and its callback all are executed before the loadSync function
-    // returns. The outcome here is that the following result is always set correctly.
-    this.syncLoad = false;
-    return result;
   }
 
   _initializeOptions(options) {
@@ -172,7 +173,7 @@ class WSDL {
     }
   }
 
-  _processNextInclude(includes, callback) {
+  _processNextInclude(syncLoad, includes, callback) {
     debugInclude('includes/imports: ', includes);
     var self = this,
       include = includes.shift(),
@@ -183,7 +184,7 @@ class WSDL {
 
     // if undefined treat as "" to make path.dirname return '.' as errors on non string below
     if (!self.uri) {
-      self.uri="";
+      self.uri='';
     }
 
     var includePath;
@@ -200,7 +201,7 @@ class WSDL {
     options.ignoredNamespaces = this._originalIgnoredNamespaces || this.options.ignoredNamespaces;
     options.WSDL_CACHE = this.WSDL_CACHE;
 
-    var staticLoad = function(err, wsdl) {
+    var staticLoad = function(syncLoad, err, wsdl) {
       if (err) {
         return callback(err);
       }
@@ -228,24 +229,24 @@ class WSDL {
           deepMerge(self.definitions.schemas[include.namespace ||
           wsdl.definitions.$targetNamespace], wsdl.definitions);
       }
-      self._processNextInclude(includes, function (err) {
+      self._processNextInclude(syncLoad, includes, function (err) {
         callback(err);
       });
     };
 
-    if (self.syncLoad) {
+    if (syncLoad) {
       var wsdl = WSDL.loadSync(includePath, options);
-      staticLoad(null, wsdl);
+      staticLoad(true, null, wsdl);
     } else {
       WSDL.load(includePath, options, function (err, wsdl) {
-        staticLoad(err, wsdl);
+        staticLoad(false, err, wsdl);
       });
 
     }
 
   }
 
-  processIncludes(callback) {
+  processIncludes(syncLoad, callback) {
     var schemas = this.definitions.schemas,
       includes = [];
 
@@ -254,7 +255,7 @@ class WSDL {
       includes = includes.concat(schema.includes || []);
     }
 
-    this._processNextInclude(includes, callback);
+    this._processNextInclude(syncLoad, includes, callback);
   }
 
   describeServices() {
