@@ -1,9 +1,3 @@
-2018-09-11, Version 1.12.2
-==========================
-
- * Allow wsdl's to be loaded from cache in a sync way (Dom Storey)
-
-
 2018-08-08, Version 1.12.1
 ==========================
 
